@@ -73,6 +73,10 @@ func (sm *StateManager) Run() {
 			fmt.Printf("[StateManager-%d] FSM update: floor=%d dir=%d\n",
 				sm.elevatorID, update.Floor, update.Direction)
 
+			// Lagre egen state i knownElevators slik at OrderAssigner kan see den
+			sm.knownElevators[sm.elevatorID] = myState
+			sm.publishGlobalState()
+
 		// Motta state fra andre heiser
 		case rcvdState := <-sm.stateRxCh:
 			// Ignorer egen state
