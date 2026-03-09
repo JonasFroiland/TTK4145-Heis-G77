@@ -108,11 +108,17 @@ func (doa *DeterministicOrderAssigner) assignOrderDeterministic(
 }
 
 // calculateCost beregner kostnad for en heis å ta ordren
+// Optimalisert for at hall calls skal gå til NÆRMESTE heis
 func (doa *DeterministicOrderAssigner) calculateCost(
 	order HallOrderMsg,
 	elevState ElevatorStateMsg,
 ) int {
 	distance := abs(elevState.Floor - order.Floor)
+
+	// Hvis heisen er på samme etasje og står stille (idle), gi den lavest mulig kostnad
+	if distance == 0 && elevState.Direction == 0 {
+		return 0
+	}
 
 	queueLength := 0
 	for _, floorOrders := range elevState.Orders {
@@ -123,13 +129,25 @@ func (doa *DeterministicOrderAssigner) calculateCost(
 		}
 	}
 
-	cost := distance*10 + queueLength*5
+	// Primær faktor: avstand (høy vekt)
+	// Sekundær faktor: queue (lav vekt)
+	cost := distance*100 + queueLength*2
 
-	// Retningsstraf
-	if elevState.Direction == 1 && order.Floor < elevState.Floor {
-		cost += 15
-	} else if elevState.Direction == -1 && order.Floor > elevState.Floor {
-		cost += 15
+	// Retningsstraf: MYKERE enn før
+	// Kun hvis heisen beveger seg BORT fra ordren og har lang kø
+	if queueLength > 2 {
+		if elevState.Direction == 1 && order.Floor < elevState.Floor {
+			cost += 20
+		} else if elevState.Direction == -1 && order.Floor > elevState.Floor {
+			cost += 20
+		}
+	}
+
+	// Bonus hvis heisen beveger seg MOT ordren
+	if elevState.Direction == 1 && order.Floor > elevState.Floor {
+		cost -= 10
+	} else if elevState.Direction == -1 && order.Floor < elevState.Floor {
+		cost -= 10
 	}
 
 	return cost
