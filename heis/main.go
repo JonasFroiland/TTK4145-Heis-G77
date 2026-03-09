@@ -118,26 +118,27 @@ func main() {
 	fmt.Println("[Main] Starting network components...")
 
 	// Peer detection (bruker own ID as elevator ID string)
+	// Port 15770 = Gruppe77 peer detection (15000 + 77*10)
 	elevatorIDStr2 := fmt.Sprintf("elev-%d", elevatorID)
-	go peers.Transmitter(15647, elevatorIDStr2, peerTxEnable)
-	go peers.Receiver(15647, peerUpdateCh)
+	go peers.Transmitter(15770, elevatorIDStr2, peerTxEnable)
+	go peers.Receiver(15770, peerUpdateCh)
 
 	// State broadcast via bcast
-	// Denne sender/mottar ElevatorStateMsg på port 16789
-	go bcast.Transmitter(16789, stateTxCh)
-	go bcast.Receiver(16789, stateRxCh)
+	// Port 16769 = Gruppe77 state broadcast (16000 + 77*10 - 231)
+	go bcast.Transmitter(16769, stateTxCh)
+	go bcast.Receiver(16769, stateRxCh)
 
 	// Hall order broadcast via bcast - THREE separate receivers
-	// Denne sender HallOrderMsg på port 16790
-	go bcast.Transmitter(16790, hallOrderTxCh)
-	go bcast.Receiver(16790, hallOrderRxCh1) // For HallLightMgr
-	go bcast.Receiver(16790, hallOrderRxCh2) // For OrderAssigner
-	go bcast.Receiver(16790, hallOrderRxCh3) // For StateManager
+	// Port 16770 = Gruppe77 hall orders (16000 + 77*10 - 230)
+	go bcast.Transmitter(16770, hallOrderTxCh)
+	go bcast.Receiver(16770, hallOrderRxCh1) // For HallLightMgr
+	go bcast.Receiver(16770, hallOrderRxCh2) // For OrderAssigner
+	go bcast.Receiver(16770, hallOrderRxCh3) // For StateManager
 
 	// Hall orders cleared broadcast via bcast
-	// Denne sender/mottar HallOrderMsg på port 16791 (signal når en heis har clearet en hall order)
-	go bcast.Transmitter(16791, hallOrdersClearedTxCh)
-	go bcast.Receiver(16791, hallOrdersClearedRxCh)
+	// Port 16771 = Gruppe77 hall orders cleared (16000 + 77*10 - 229)
+	go bcast.Transmitter(16771, hallOrdersClearedTxCh)
+	go bcast.Receiver(16771, hallOrdersClearedRxCh)
 
 	// Monitor peer updates (for debugging)
 	go func() {
