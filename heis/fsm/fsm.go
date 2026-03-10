@@ -263,6 +263,9 @@ func onExternalOrder(e *Elevator, ord Order) {
 
 		clearOrdersAtFloor(e, ord.Floor, int(e.lastDir))
 
+		// VIKTIG: Send state update slik at StateManager vet at ordren er fjernet
+		sendStateUpdate(e)
+
 		// Broadcast that this floor has been served
 		select {
 		case e.floorServedTxCh <- ord.Floor:
