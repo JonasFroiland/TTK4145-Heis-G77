@@ -44,8 +44,9 @@ type Elevator struct {
 	obstructed bool
 	doorTimer  *time.Timer
 
-	orders  [][]bool
-	stateCh chan<- StateUpdate
+	orders          [][]bool
+	stateCh         chan<- StateUpdate
+	floorServedTxCh chan<- int
 }
 
 func Run(numFloors int,
@@ -54,14 +55,16 @@ func Run(numFloors int,
 	obstrCh <-chan bool,
 	orderCh <-chan Order,
 	stateCh chan<- StateUpdate,
+	floorServedTxCh chan<- int,
 ) {
 	e := Elevator{
-		state:   ST_Idle,
-		floor:   0,
-		dir:     DIR_Stop,
-		lastDir: DIR_Up,
-		orders:  make([][]bool, numFloors),
-		stateCh: stateCh,
+		state:           ST_Idle,
+		floor:           0,
+		dir:             DIR_Stop,
+		lastDir:         DIR_Up,
+		orders:          make([][]bool, numFloors),
+		stateCh:         stateCh,
+		floorServedTxCh: floorServedTxCh,
 	}
 	for f := 0; f < numFloors; f++ {
 		e.orders[f] = make([]bool, 3)
@@ -175,6 +178,14 @@ func onFloor(e *Elevator, f int) {
 		fmt.Println("[DOOR] OPEN")
 
 		clearOrdersAtFloor(e, f, int(e.lastDir))
+
+		// Broadcast to all elevators that this floor has been served
+		select {
+		case e.floorServedTxCh <- f:
+			fmt.Printf("[FSM] Broadcasted floor served: %d\n", f)
+		default:
+			fmt.Printf("[FSM] Floor served channel full, dropped signal for floor %d\n", f)
+		}
 
 		// Start door timer - non-blocking
 		if e.doorTimer != nil {
