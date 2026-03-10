@@ -390,27 +390,27 @@ func clearOrdersAtFloor(e *Elevator, floor int, direction int) {
 	if floor == 0 { // Nedeterste etasje: kun "opp"-knapp finnes
 		if e.orders[floor][0] { // BT_HallUp
 			e.orders[floor][0] = false
-			elevio.SetButtonLamp(0, floor, false)
-			fmt.Printf("  - Cleared HallUp (bottom floor)\n")
+			// HallLightMgr styrer lysene basert på state-updates, ikke FSM
+			fmt.Printf("  - Cleared HallUp from orders (bottom floor)\n")
 		}
 	} else if floor == numFloors-1 { // Øverste etasje: kun "ned"-knapp finnes
 		if e.orders[floor][1] { // BT_HallDown
 			e.orders[floor][1] = false
-			elevio.SetButtonLamp(1, floor, false)
-			fmt.Printf("  - Cleared HallDown (top floor)\n")
+			// HallLightMgr styrer lysene basert på state-updates, ikke FSM
+			fmt.Printf("  - Cleared HallDown from orders (top floor)\n")
 		}
 	} else { // Midtetasjer: begge knapper kan være tilstede, slett basert på retning
 		if direction == 1 { // Heisen beveger seg oppover
 			if e.orders[floor][0] { // BT_HallUp
 				e.orders[floor][0] = false
-				elevio.SetButtonLamp(0, floor, false)
-				fmt.Printf("  - Cleared HallUp (moving up)\n")
+				// HallLightMgr styrer lysene basert på state-updates, ikke FSM
+				fmt.Printf("  - Cleared HallUp from orders (moving up)\n")
 			}
 		} else if direction == -1 { // Heisen beveger seg nedover
 			if e.orders[floor][1] { // BT_HallDown
 				e.orders[floor][1] = false
-				elevio.SetButtonLamp(1, floor, false)
-				fmt.Printf("  - Cleared HallDown (moving down)\n")
+				// HallLightMgr styrer lysene basert på state-updates, ikke FSM
+				fmt.Printf("  - Cleared HallDown from orders (moving down)\n")
 			}
 		}
 	}
