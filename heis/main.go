@@ -55,7 +55,8 @@ func main() {
 	// ===== NETWORK CHANNELS (via Network-go/bcast) =====
 	// State broadcast - begge heiser sender og mottar via samme port
 	stateTxCh := make(chan ElevatorStateMsg)
-	stateRxCh := make(chan ElevatorStateMsg)
+	stateRxCh := make(chan ElevatorStateMsg)  // For StateManager
+	stateRxCh2 := make(chan ElevatorStateMsg) // For HallLightMgr
 
 	// Hall order broadcast - three separate receivers slik at HallLightMgr, OrderAssigner, og StateManager får alle meldinger
 	hallOrderTxCh := make(chan HallOrderMsg)
@@ -126,7 +127,8 @@ func main() {
 	// State broadcast via bcast
 	// Port 16769 = Gruppe77 state broadcast (16000 + 77*10 - 231)
 	go bcast.Transmitter(16769, stateTxCh)
-	go bcast.Receiver(16769, stateRxCh)
+	go bcast.Receiver(16769, stateRxCh)  // For StateManager
+	go bcast.Receiver(16769, stateRxCh2) // For HallLightMgr
 
 	// Hall order broadcast via bcast - THREE separate receivers
 	// Port 16770 = Gruppe77 hall orders (16000 + 77*10 - 230)
@@ -204,7 +206,7 @@ func main() {
 				}
 
 			// State update fra andre heiser -> sjekk om ordrer som er tente finnes fortsatt
-			case elevState := <-stateRxCh:
+			case elevState := <-stateRxCh2:
 				knownElevatorStates[elevState.ID] = elevState
 
 				// Sjekk alle TENTE lys
